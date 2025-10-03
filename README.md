@@ -1,5 +1,15 @@
 # WebGPU Globe - 3D Terrain Editor
 
+## Demo GIFs
+
+![Terrain Editing Demo](1.gif)
+*Real-time terrain editing with brush controls and extrusion/compression modes*
+
+
+![Advanced Clipping Demo](2.gif)
+*Polygon-based clipping with real-time transformations and layer control*
+
+
 A real-time 3D terrain editing platform for prototyping GIS visualizations with WebGPU rendering.
 
 ## Purpose
