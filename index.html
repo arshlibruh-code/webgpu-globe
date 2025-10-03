@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Globe - Terrain Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div id="controls">
+        <h3>WebGPU Globe</h3>
+        
+        <div class="button-container">
+            <button id="loadTerrain">Load Terrain</button>
+            <button id="editMode">Edit Mode</button>
+            <button id="polygonMode">Polygon Mode</button>
+            <button id="wireframeMode">Wireframe</button>
+            <button id="smoothGlobe">Smooth Globe</button>
+            <button id="loadPointCloud">Load Point Cloud</button>
+        </div>
+        
+        <div class="tool-group">
+            <label>Brush Size: <input type="range" id="brushSize" min="1" max="50" value="20"> <span id="brushSizeValue">20</span></label>
+        </div>
+        
+            <div class="tool-group">
+                <label>MODE:</label>
+                <div class="mode-controls">
+                    <div class="mode-buttons">
+                        <button id="extrudeBtn" class="mode-btn active">EXTRUDE</button>
+                        <button id="compressBtn" class="mode-btn">COMPRESS</button>
+                    </div>
+                    <div class="intensity-control">
+                        <label>Intensity: <input type="range" id="intensity" min="0.1" max="2.0" value="1" step="0.1"> <span id="intensityValue">1</span></label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tool-group">
+                <label>EARTH LAYERS:</label>
+                <div class="layer-controls">
+                    <div class="layer-item">
+                        <label>Crust: <input type="checkbox" id="crustToggle" checked> <input type="range" id="crustOpacity" min="0" max="1" value="1" step="0.1"> <span id="crustOpacityValue">1</span></label>
+                    </div>
+                    <div class="layer-item">
+                        <label>Mantle: <input type="checkbox" id="mantleToggle" checked> <input type="range" id="mantleOpacity" min="0" max="1" value="0.8" step="0.1"> <span id="mantleOpacityValue">0.8</span></label>
+                    </div>
+                    <div class="layer-item">
+                        <label>Core: <input type="checkbox" id="coreToggle" checked> <input type="range" id="coreOpacity" min="0" max="1" value="0.6" step="0.1"> <span id="coreOpacityValue">0.6</span></label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tool-group">
+                <label>CLIPPING:</label>
+                <div class="clipping-header">
+                    <label class="realtime-toggle">
+                        <input type="checkbox" id="realtimeClippingToggle">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Real-time Clipping</span>
+                    </label>
+                </div>
+                <div class="clipping-controls">
+                    <div class="clipping-direction">
+                        <label>Direction: 
+                            <select id="clippingDirection">
+                                <option value="outside">Outside Polygon</option>
+                                <option value="inside" selected>Inside Polygon</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="clipping-layers">
+                        <div class="layer-card">
+                            <label class="layer-checkbox">
+                                <input type="checkbox" id="clipCrust" checked>
+                                <span class="layer-name">Crust</span>
+                                <span class="layer-color" style="background: #404040;"></span>
+                            </label>
+                        </div>
+                        <div class="layer-card">
+                            <label class="layer-checkbox">
+                                <input type="checkbox" id="clipMantle" checked>
+                                <span class="layer-name">Mantle</span>
+                                <span class="layer-color" style="background: #ff6600;"></span>
+                            </label>
+                        </div>
+                        <div class="layer-card">
+                            <label class="layer-checkbox">
+                                <input type="checkbox" id="clipCore" checked>
+                                <span class="layer-name">Core</span>
+                                <span class="layer-color" style="background: #ffff00;"></span>
+                            </label>
+                        </div>
+                        <div class="clipping-actions">
+                            <button id="restoreAll">Restore All</button>
+                        </div>
+                    </div>
+                    <div class="polygon-position">
+                        <label>Polygon Position: 
+                            <select id="polygonAxis">
+                                <option value="x">X Axis</option>
+                                <option value="y">Y Axis</option>
+                                <option value="z" selected>Z Axis</option>
+                            </select>
+                        </label>
+                        <label>Position: <input type="range" id="polygonPosition" min="-100" max="100" value="0" step="1"> <span id="polygonPositionValue">0</span></label>
+                    </div>
+                    <div class="polygon-rotation">
+                        <label>Polygon Rotation: 
+                            <select id="polygonRotationAxis">
+                                <option value="x">X Axis</option>
+                                <option value="y">Y Axis</option>
+                                <option value="z">Z Axis</option>
+                            </select>
+                        </label>
+                        <label>Rotation: <input type="range" id="polygonRotation" min="0" max="360" value="0" step="1"> <span id="polygonRotationValue">0°</span></label>
+                    </div>
+                    <div class="polygon-size">
+                        <label>Width: <input type="range" id="polygonWidth" min="1" max="50" value="50" step="1"> <span id="polygonWidthValue">50</span></label>
+                        <label>Height: <input type="range" id="polygonHeight" min="1" max="50" value="50" step="1"> <span id="polygonHeightValue">50</span></label>
+                    </div>
+                </div>
+            </div>
+        
+        <div class="console">
+            <div class="console-info">
+                <p>Current segments: <span id="segmentCount">256x128</span></p>
+                <p>Vertex count: <span id="vertexCount">32,768</span></p>
+                <p>Triangle count: <span id="triangleCount">65,536</span></p>
+            </div>
+            <div class="console-controls">
+                <label>Width: 
+                    <input type="number" id="customWidth" placeholder="256" min="8" max="1024" value="256">
+                </label>
+                <label>Height: 
+                    <input type="number" id="customHeight" placeholder="128" min="8" max="1024" value="128">
+                </label>
+            </div>
+            
+                <div class="console-presets">
+                    <button class="preset-btn" data-width="8" data-height="8">8×8 (Test)</button>
+                    <button class="preset-btn" data-width="256" data-height="128">256×128 (Ultra)</button>
+                    <button class="preset-btn" data-width="512" data-height="256">512×256 (Extreme)</button>
+                    <button class="preset-btn" data-width="1024" data-height="512">1024×512 (Maximum)</button>
+                </div>
+        </div>
+        
+    </div>
+    
+    <script type="module" src="app.js"></script>
+</body>
+</html>
